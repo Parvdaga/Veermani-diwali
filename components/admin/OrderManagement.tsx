@@ -5,8 +5,9 @@ import { supabase, type Order } from '@/lib/supabase';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { sendInvoiceViaWhatsApp } from '@/lib/whatsapp';
 import { useToast } from '@/hooks/use-toast';
-import { Clock, Package, CircleCheck as CheckCircle, Circle as XCircle, Phone, User } from 'lucide-react';
+import { Clock, Package, CircleCheck as CheckCircle, Circle as XCircle, Phone, User, MessageSquare } from 'lucide-react';
 
 export default function OrderManagement() {
   const { toast } = useToast();
@@ -202,7 +203,7 @@ export default function OrderManagement() {
                   variant="outline"
                   size="sm"
                   className="w-full"
-                  disabled={order.status === 'processing' || order.status === 'completed'}
+                  disabled={order.status === 'processing' || order.status === 'completed' || order.status === 'cancelled'}
                 >
                   Processing
                 </Button>
@@ -211,7 +212,7 @@ export default function OrderManagement() {
                   variant="outline"
                   size="sm"
                   className="w-full"
-                  disabled={order.status === 'ready' || order.status === 'completed'}
+                  disabled={order.status === 'ready' || order.status === 'completed' || order.status === 'cancelled'}
                 >
                   Ready
                 </Button>
@@ -219,10 +220,29 @@ export default function OrderManagement() {
                   onClick={() => updateOrderStatus(order.id, 'completed')}
                   className="w-full bg-green-600 hover:bg-green-700"
                   size="sm"
-                  disabled={order.status === 'completed'}
+                  disabled={order.status === 'completed' || order.status === 'cancelled'}
                 >
                   <CheckCircle className="w-4 h-4 mr-2" />
                   Complete
+                </Button>
+                <Button
+                  onClick={() => sendInvoiceViaWhatsApp({
+                    phone: order.customer_phone,
+                    orderNumber: order.order_number,
+                    customerName: order.customer_name,
+                    items: order.items,
+                    totalAmount: order.total_amount,
+                    createdAt: order.created_at,
+                    fulfillmentType: order.fulfillment_type,
+                    pickupDatetime: order.pickup_datetime,
+                    customPacking: order.custom_packing,
+                    specialInstructions: order.special_instructions,
+                  })}
+                  className="w-full bg-teal-600 hover:bg-teal-700"
+                  size="sm"
+                >
+                  <MessageSquare className="w-4 h-4 mr-2" />
+                  Send WA
                 </Button>
                 <Button
                   onClick={() => updateOrderStatus(order.id, 'cancelled')}

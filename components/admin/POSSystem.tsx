@@ -7,6 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { ToastAction } from '@/components/ui/toast';
+import { sendInvoiceViaWhatsApp } from '@/lib/whatsapp';
 import { Plus, Minus, Trash2, ShoppingCart, Wallet, QrCode } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
@@ -50,12 +52,12 @@ export default function POSSystem() {
       setCart(
         cart.map((item) =>
           item.product.id === product.id
-            ? { ...item, quantity_kg: item.quantity_kg + 0.5 }
+            ? { ...item, quantity_kg: item.quantity_kg + 0.25 }
             : item
         )
       );
     } else {
-      setCart([...cart, { product, quantity_kg: 0.5 }]);
+      setCart([...cart, { product, quantity_kg: 0.25 }]);
     }
   };
 
@@ -141,6 +143,22 @@ export default function POSSystem() {
       toast({
         title: 'Order Completed!',
         description: `Order ${orderNumber} has been saved.`,
+        action: (
+          <ToastAction
+            altText="Send WhatsApp"
+            onClick={() => sendInvoiceViaWhatsApp({
+              phone: customerPhone,
+              orderNumber: orderNumber,
+              customerName: customerName,
+              items: orderItems,
+              totalAmount: getTotalAmount(),
+              fulfillmentType: 'take_away',
+              createdAt: new Date().toISOString()
+            })}
+          >
+            Send WhatsApp
+          </ToastAction>
+        ),
       });
 
       setCart([]);
@@ -256,7 +274,13 @@ export default function POSSystem() {
                         >
                           <Minus className="w-3 h-3" />
                         </Button>
-                        <span className="text-sm w-12 text-center">{item.quantity_kg}kg</span>
+                        <Input
+                          type="number"
+                          step="0.25"
+                          className="h-6 w-16 text-center"
+                          value={item.quantity_kg}
+                          onChange={(e) => updateQuantity(item.product.id, parseFloat(e.target.value) || 0)}
+                        />
                         <Button
                           size="icon"
                           variant="outline"
@@ -320,9 +344,8 @@ export default function POSSystem() {
             <DialogTitle>UPI Payment</DialogTitle>
           </DialogHeader>
           <div className="text-center p-6">
-            <div className="bg-gray-100 w-64 h-64 mx-auto rounded-lg flex items-center justify-center mb-4">
-              <QrCode className="w-32 h-32 text-gray-400" />
-              <p className="absolute text-sm text-gray-600">QR Code Placeholder</p>
+            <div className="bg-white w-64 h-64 mx-auto rounded-lg flex items-center justify-center mb-4 p-4 border">
+              <img src="/upi-qr.png" alt="UPI QR Code" className="w-full h-full object-contain" />
             </div>
             <p className="text-lg font-semibold mb-2">₹{getTotalAmount().toFixed(2)}</p>
             <p className="text-sm text-muted-foreground mb-6">

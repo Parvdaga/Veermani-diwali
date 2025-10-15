@@ -67,13 +67,13 @@ export default function AdminDashboard() {
             <p className="text-sm text-orange-100">Admin Dashboard</p>
           </div>
           <div className="flex items-center gap-4">
-            <div className="text-right mr-4">
+            <div className="text-right mr-4 hidden sm:block">
               <p className="text-sm text-orange-100">Logged in as</p>
               <p className="font-semibold">{user?.email}</p>
             </div>
             <Button onClick={handleSignOut} variant="secondary" size="sm">
-              <LogOut className="w-4 h-4 mr-2" />
-              Logout
+              <LogOut className="w-4 h-4 mr-2 sm:mr-0" />
+              <span className="hidden sm:inline sm:ml-2">Logout</span>
             </Button>
           </div>
         </div>
@@ -81,7 +81,7 @@ export default function AdminDashboard() {
 
       <main className="container mx-auto px-4 py-8">
         <Tabs defaultValue="pos" className="w-full">
-          <TabsList className="grid w-full grid-cols-5 mb-8 bg-white border-2 border-orange-300 h-auto p-2">
+          <TabsList className="grid w-full grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 mb-8 bg-white border-2 border-orange-300 h-auto p-2">
             <TabsTrigger value="pos" className="data-[state=active]:bg-orange-500 data-[state=active]:text-white py-3">
               <ShoppingCart className="w-5 h-5 mr-2" />
               Counter Billing

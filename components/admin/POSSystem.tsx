@@ -85,10 +85,22 @@ export default function POSSystem() {
   };
 
   const handlePayment = async (paymentMethod: 'cash' | 'upi' | 'pending') => {
-    if (!customerName || !customerPhone) {
+    const trimmedPhone = customerPhone.trim();
+    const phoneValid = /^[0-9]{10}$/.test(trimmedPhone);
+
+    if (!customerName || !trimmedPhone) {
       toast({
         title: 'Missing Information',
         description: 'Please enter customer name and phone number.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (!phoneValid) {
+      toast({
+        title: 'Invalid Phone Number',
+        description: 'Please enter a valid 10-digit phone number.',
         variant: 'destructive',
       });
       return;
@@ -129,7 +141,7 @@ export default function POSSystem() {
       const { error } = await supabase.from('orders').insert({
         order_number: orderNumber,
         customer_name: customerName,
-        customer_phone: customerPhone,
+        customer_phone: customerPhone.trim(),
         order_type: 'counter',
         items: orderItems,
         total_amount: getTotalAmount(),
@@ -143,8 +155,8 @@ export default function POSSystem() {
       
       if (paymentMethod === 'pending') {
         toast({
-            title: 'Order Saved!',
-            description: `Order ${orderNumber} saved as pending.`,
+          title: 'Order Saved!',
+          description: `Order ${orderNumber} saved as pending.`,
         });
       } else {
         toast({
@@ -153,15 +165,17 @@ export default function POSSystem() {
           action: (
             <ToastAction
               altText="Send WhatsApp"
-              onClick={() => sendInvoiceViaWhatsApp({
-                phone: customerPhone,
-                orderNumber: orderNumber,
-                customerName: customerName,
-                items: orderItems,
-                totalAmount: getTotalAmount(),
-                fulfillmentType: 'take_away',
-                createdAt: new Date().toISOString()
-              })}
+              onClick={() =>
+                sendInvoiceViaWhatsApp({
+                  phone: customerPhone.trim(),
+                  orderNumber: orderNumber,
+                  customerName: customerName,
+                  items: orderItems,
+                  totalAmount: getTotalAmount(),
+                  fulfillmentType: 'take_away',
+                  createdAt: new Date().toISOString(),
+                })
+              }
             >
               Send WhatsApp
             </ToastAction>
@@ -193,6 +207,7 @@ export default function POSSystem() {
 
   return (
     <div className="grid lg:grid-cols-3 gap-6">
+      {/* Products Section */}
       <div className="lg:col-span-2 space-y-4">
         <Card className="border-2 border-orange-300">
           <CardHeader>
@@ -223,6 +238,7 @@ export default function POSSystem() {
         </Card>
       </div>
 
+      {/* Cart Section */}
       <div className="lg:col-span-1">
         <Card className="sticky top-4 border-2 border-orange-400">
           <CardHeader>
@@ -246,9 +262,10 @@ export default function POSSystem() {
               <Label>Phone Number</Label>
               <Input
                 value={customerPhone}
-                onChange={(e) => setCustomerPhone(e.target.value)}
-                placeholder="Phone number"
+                onChange={(e) => setCustomerPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                placeholder="10-digit number"
                 className="mt-1"
+                maxLength={10}
               />
             </div>
 
@@ -357,6 +374,7 @@ export default function POSSystem() {
         </Card>
       </div>
 
+      {/* UPI Modal */}
       <Dialog open={showUPIModal} onOpenChange={setShowUPIModal}>
         <DialogContent>
           <DialogHeader>

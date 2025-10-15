@@ -50,6 +50,17 @@ export default function CheckoutPage() {
       return;
     }
 
+    // ✅ Phone number validation (10 digits, starts with 6-9)
+    const phoneRegex = /^[6-9]\d{9}$/;
+    if (!phoneRegex.test(customerPhone)) {
+      toast({
+        title: 'Invalid Phone Number',
+        description: 'Please enter a valid 10-digit phone number.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     if (fulfillmentType === 'take_away' && (!pickupDate || !pickupTime)) {
       toast({
         title: 'Missing Pickup Details',
@@ -62,7 +73,12 @@ export default function CheckoutPage() {
     setSubmitting(true);
 
     try {
-      const orderNumber = `VK${new Date().toISOString().slice(0, 10).replace(/-/g, '')}${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`;
+      const orderNumber = `VK${new Date()
+        .toISOString()
+        .slice(0, 10)
+        .replace(/-/g, '')}${Math.floor(Math.random() * 10000)
+        .toString()
+        .padStart(4, '0')}`;
 
       const orderItems: OrderItem[] = items.map((item) => ({
         product_id: item.id,
@@ -72,9 +88,10 @@ export default function CheckoutPage() {
         subtotal: item.price_per_kg * item.quantity_kg,
       }));
 
-      const pickupDatetime = fulfillmentType === 'take_away' && pickupDate && pickupTime
-        ? new Date(`${pickupDate}T${pickupTime}`).toISOString()
-        : null;
+      const pickupDatetime =
+        fulfillmentType === 'take_away' && pickupDate && pickupTime
+          ? new Date(`${pickupDate}T${pickupTime}`).toISOString()
+          : null;
 
       const { error } = await supabase.from('orders').insert({
         order_number: orderNumber,
@@ -136,6 +153,7 @@ export default function CheckoutPage() {
         <form onSubmit={handleSubmit}>
           <div className="grid lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 space-y-6">
+              {/* Customer Info */}
               <Card className="border-2 border-orange-300">
                 <CardHeader>
                   <CardTitle>Customer Information</CardTitle>
@@ -156,29 +174,40 @@ export default function CheckoutPage() {
                     <Input
                       id="phone"
                       type="tel"
+                      inputMode="numeric"
+                      pattern="[0-9]{10}"
+                      maxLength={10}
+                      placeholder="Enter 10-digit number"
                       value={customerPhone}
                       onChange={(e) => setCustomerPhone(e.target.value)}
                       required
                       className="mt-1"
-                      placeholder="9425314543"
                     />
                   </div>
                 </CardContent>
               </Card>
 
+              {/* Fulfillment Option */}
               <Card className="border-2 border-orange-300">
                 <CardHeader>
                   <CardTitle>Fulfillment Option</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <RadioGroup value={fulfillmentType} onValueChange={(v) => setFulfillmentType(v as any)}>
+                  <RadioGroup
+                    value={fulfillmentType}
+                    onValueChange={(v) => setFulfillmentType(v as any)}
+                  >
                     <div className="flex items-center space-x-2 mb-4">
                       <RadioGroupItem value="take_away" id="take_away" />
-                      <Label htmlFor="take_away" className="flex-1 cursor-pointer">Take Away</Label>
+                      <Label htmlFor="take_away" className="flex-1 cursor-pointer">
+                        Take Away
+                      </Label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="parcel" id="parcel" />
-                      <Label htmlFor="parcel" className="flex-1 cursor-pointer">Parcel</Label>
+                      <Label htmlFor="parcel" className="flex-1 cursor-pointer">
+                        Parcel
+                      </Label>
                     </div>
                   </RadioGroup>
 
@@ -219,13 +248,15 @@ export default function CheckoutPage() {
                   {fulfillmentType === 'parcel' && (
                     <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                       <p className="text-sm text-blue-800">
-                        📦 <strong>Note:</strong> Parcel charges will be added afterwards based on your location.
+                        📦 <strong>Note:</strong> Parcel charges will be added afterwards based on
+                        your location.
                       </p>
                     </div>
                   )}
                 </CardContent>
               </Card>
 
+              {/* Special Instructions */}
               <Card className="border-2 border-orange-300">
                 <CardHeader>
                   <CardTitle>Special Instructions (Optional)</CardTitle>
@@ -241,6 +272,7 @@ export default function CheckoutPage() {
               </Card>
             </div>
 
+            {/* Order Summary */}
             <div className="lg:col-span-1">
               <Card className="sticky top-4 border-2 border-orange-400">
                 <CardHeader>
@@ -250,7 +282,9 @@ export default function CheckoutPage() {
                   <div className="space-y-2">
                     {items.map((item) => (
                       <div key={item.id} className="flex justify-between text-sm">
-                        <span>{item.name} ({item.quantity_kg}kg)</span>
+                        <span>
+                          {item.name} ({item.quantity_kg}kg)
+                        </span>
                         <span>₹{(item.price_per_kg * item.quantity_kg).toFixed(2)}</span>
                       </div>
                     ))}
@@ -266,7 +300,9 @@ export default function CheckoutPage() {
                   <div className="border-t pt-4">
                     <div className="flex justify-between text-xl font-bold">
                       <span>Total</span>
-                      <span className="text-orange-600">₹{getTotalAmount().toFixed(2)}</span>
+                      <span className="text-orange-600">
+                        ₹{getTotalAmount().toFixed(2)}
+                      </span>
                     </div>
                   </div>
 

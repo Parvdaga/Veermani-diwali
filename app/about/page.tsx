@@ -32,26 +32,36 @@ export default function AboutPage() {
 
             <div className="space-y-4 text-lg text-muted-foreground">
               <p>
-                Welcome to <strong className="text-orange-700">Veermani Kitchen's</strong>, your trusted source for authentic,
-                homemade sweets and namkeen since generations. We take pride in preparing traditional Indian delicacies
-                with the finest ingredients and time-honored recipes passed down through our family.
+                Welcome to <strong className="text-orange-700">Veermani Kitchen's</strong>, your trusted
+                catering and tiffin service dedicated to serving premium-quality, homely food at
+                affordable prices. Established in <strong>2023</strong>, we started with a simple
+                mission — to deliver authentic, freshly prepared meals that taste just like home.
               </p>
 
               <p>
-                Our Diwali Special collection features an exquisite range of premium sweets and savory snacks,
-                carefully crafted to make your festivals truly memorable. From the rich and creamy Kaju Katli to
-                the crispy and flavorful namkeen varieties, every item is prepared with love and attention to detail.
+                At Veermani Kitchen’s, we believe that food should bring comfort, joy, and togetherness.
+                Whether you’re a student missing home-cooked meals, a working professional looking for
+                healthy tiffin options, or someone hosting an event, we prepare every dish with care,
+                using only fresh and high-quality ingredients.
               </p>
 
               <p>
-                We use only pure ghee, premium dry fruits, and the highest quality ingredients to ensure that every
-                bite delivers authentic taste and superior quality. Our commitment to hygiene and freshness is unwavering,
-                and we prepare everything in small batches to maintain the perfect texture and flavor.
+                Our team takes pride in maintaining the perfect balance between taste, nutrition, and hygiene.
+                Every meal is cooked in small batches to preserve freshness, using traditional recipes and
+                premium ingredients that ensure a wholesome dining experience.
+              </p>
+
+              <p>
+                During the <strong>festive seasons</strong>, especially <strong>Diwali</strong>, we bring to you
+                a special collection of <strong>sweets and namkeen</strong> — from rich, creamy
+                <em> Kaju Katli </em> to our crispy, flavorful namkeen varieties. Each item is made
+                using <strong>pure ghee, premium dry fruits</strong>, and authentic family recipes passed
+                down through generations.
               </p>
 
               <p className="font-semibold text-orange-700">
-                Whether it's for Diwali celebrations, special occasions, or simply treating yourself to something delicious,
-                Veermani Kitchen's is here to serve you with the best traditional sweets and namkeen.
+                Whether it’s your everyday meal, an event, or festive celebrations, Veermani Kitchen’s
+                is here to serve you with love, tradition, and taste that feels like home.
               </p>
             </div>
           </CardContent>
@@ -61,12 +71,12 @@ export default function AboutPage() {
           <CardContent className="p-8 text-center">
             <Phone className="w-12 h-12 text-orange-600 mx-auto mb-4" />
             <h3 className="text-2xl font-bold text-orange-800 mb-4">Get in Touch</h3>
-            <p className="text-lg mb-2">For orders and inquiries:</p>
+            <p className="text-lg mb-2">For orders, catering, or inquiries:</p>
             <p className="text-2xl font-bold text-orange-700 mb-4">
               📞 9425314543, 9425314545
             </p>
             <p className="text-sm text-muted-foreground">
-              We're here to make your celebrations sweeter!
+              Bringing you the taste of home — one meal at a time!
             </p>
           </CardContent>
         </Card>

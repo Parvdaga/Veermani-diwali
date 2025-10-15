@@ -46,10 +46,20 @@ Visit http://localhost:3000 - You're ready!
 
 ## 📚 Documentation
 
-- **[Quick Start Guide](QUICK-START.md)** - Get running in 5 minutes
-- **[Complete Setup Guide](SETUP-GUIDE.md)** - Detailed step-by-step instructions
+### Getting Started
+- **[START HERE!](START-HERE.md)** - ⭐ Begin here for quick setup
+- **[Local Setup Guide](LOCAL-SETUP.md)** - Complete local development setup
+- **[Fix Login Error](FIX-LOGIN-ERROR.md)** - Troubleshoot authentication issues
+
+### Advanced Guides
+- **[Quick Start](QUICK-START.md)** - Get running in 5 minutes
+- **[Complete Setup](SETUP-GUIDE.md)** - Detailed step-by-step instructions
 - **[Features & Architecture](FEATURES.md)** - Full technical documentation
-- **[Database Setup](database-setup.sql)** - SQL script for database initialization
+- **[Deployment Guide](DEPLOYMENT.md)** - Deploy to production (Vercel, Netlify, etc.)
+- **[WhatsApp Integration](DEPLOYMENT-AND-WHATSAPP.md)** - Set up order notifications
+
+### Database
+- **[Database Setup SQL](database-setup.sql)** - Complete schema and initial data
 
 ## 🎯 What's Included
 

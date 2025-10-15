@@ -196,9 +196,12 @@ export default function HomePage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
             <div>
               <h3 className="text-2xl font-bold mb-4 font-script">Veermani Kitchen's</h3>
-              <p className="text-sm opacity-90">
-                Your trusted source for authentic, homemade sweets and namkeen prepared with the finest ingredients and time-honored recipes.
+              <p className="text-sm opacity-90 mb-4">
+                Your trusted source for authentic, homemade sweets and namkeen.
               </p>
+              <div className="w-24 h-24 bg-white p-1 rounded-md">
+                 <Image src="/location qr.png" alt="Location QR Code" width={96} height={96} />
+              </div>
             </div>
             <div>
               <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
@@ -216,9 +219,9 @@ export default function HomePage() {
                   <Phone className="w-4 h-4" />
                   <span>9425314543, 9425314545</span>
                 </a>
-                <a href="https://share.google/IsmC9CtfQ19zmrhzx" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 opacity-90 hover:opacity-100 transition-opacity">
-                  <MapPin className="w-4 h-4" />
-                  <span>[Your Address Here], Indore, MP</span>
+                <a href="https://maps.app.goo.gl/MGZNppJhM9sxXJbw7" target="_blank" rel="noopener noreferrer" className="flex items-start gap-2 opacity-90 hover:opacity-100 transition-opacity">
+                  <MapPin className="w-4 h-4 mt-1 shrink-0" />
+                  <span>Vardhman Manglik Bhavan, Tilak nagar Extension, Tilak Nagar, Indore</span>
                 </a>
               </div>
             </div>
@@ -243,47 +246,45 @@ function ProductCard({
 }) {
   return (
     <Card className="overflow-hidden rounded-xl border-2 border-orange-200/80 hover:border-orange-400 transition-all duration-300 shadow-sm hover:shadow-xl bg-white flex flex-col">
-      <CardContent className="p-0 flex flex-col flex-grow">
-        <div className="relative w-full aspect-square overflow-hidden">
-          {product.image_url ? (
-            <Image
-              src={product.image_url}
-              alt={product.name}
-              layout="fill"
-              objectFit="cover"
-              className="transition-transform duration-300 group-hover:scale-105"
-            />
-          ) : (
-            <div className="w-full h-full bg-orange-50 flex items-center justify-center">
-              <Sparkles className="w-10 h-10 text-orange-200"/>
-            </div>
-          )}
-           {isOnOrder && (
-              <Badge variant="destructive" className="absolute top-2 right-2 text-xs">
-                On Order
-              </Badge>
-            )}
-        </div>
-        <div className="p-4 bg-white flex flex-col flex-grow">
-          <div className="flex-grow">
-            <h4 className="text-base md:text-lg font-bold text-orange-900 leading-tight">{product.name}</h4>
-            <p className="text-xs text-muted-foreground">({product.name_english})</p>
+      <div className="relative w-full aspect-[4/3] overflow-hidden group">
+        {product.image_url ? (
+          <Image
+            src={product.image_url}
+            alt={product.name}
+            layout="fill"
+            objectFit="cover"
+            className="transition-transform duration-300 group-hover:scale-105"
+          />
+        ) : (
+          <div className="w-full h-full bg-orange-50 flex items-center justify-center">
+            <Sparkles className="w-10 h-10 text-orange-200"/>
           </div>
-          <div className="flex items-center justify-between mt-4">
-            <div className="flex items-baseline gap-1">
-              <span className="text-xl font-bold text-orange-600">₹{product.price_per_kg}</span>
-              <span className="text-xs text-muted-foreground">/ Kg</span>
-            </div>
-             <Button
-              onClick={() => onAddToCart(product)}
-              size="sm"
-              className="bg-orange-500 hover:bg-orange-600 rounded-lg"
-            >
-              Add
-            </Button>
-          </div>
+        )}
+      </div>
+      <div className="p-3 flex flex-col flex-grow">
+        <div className="flex-grow mb-2">
+          <h4 className="text-base font-bold text-orange-900 leading-tight min-h-[40px]">{product.name}</h4>
+          <p className="text-xs text-muted-foreground">({product.name_english})</p>
         </div>
-      </CardContent>
+        <div className="flex items-end justify-between gap-2">
+          <div>
+            <span className="text-xl font-bold text-orange-600">₹{product.price_per_kg}</span>
+            <span className="text-xs text-muted-foreground"> / Kg</span>
+          </div>
+          <Button
+            onClick={() => onAddToCart(product)}
+            size="sm"
+            className="bg-orange-500 hover:bg-orange-600 rounded-lg shrink-0 px-3"
+          >
+            Add
+          </Button>
+        </div>
+        {isOnOrder && (
+          <Badge variant="destructive" className="mt-2 text-xs w-fit">
+            On Order
+          </Badge>
+        )}
+      </div>
     </Card>
   );
 }

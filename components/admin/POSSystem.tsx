@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { ToastAction } from '@/components/ui/toast';
 import { sendInvoiceViaWhatsApp } from '@/lib/whatsapp';
-import { Plus, Minus, Trash2, ShoppingCart, Wallet, QrCode } from 'lucide-react';
+import { Plus, Minus, Trash2, ShoppingCart, Wallet, QrCode, Save } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 type CartItem = {
@@ -84,7 +84,7 @@ export default function POSSystem() {
     );
   };
 
-  const handlePayment = async (paymentMethod: 'cash' | 'upi') => {
+  const handlePayment = async (paymentMethod: 'cash' | 'upi' | 'pending') => {
     if (!customerName || !customerPhone) {
       toast({
         title: 'Missing Information',
@@ -111,11 +111,12 @@ export default function POSSystem() {
     await processOrder(paymentMethod);
   };
 
-  const processOrder = async (paymentMethod: 'cash' | 'upi') => {
+  const processOrder = async (paymentMethod: 'cash' | 'upi' | 'pending') => {
     setProcessing(true);
 
     try {
       const orderNumber = `VK${new Date().toISOString().slice(0, 10).replace(/-/g, '')}${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`;
+      const status = (paymentMethod === 'cash' || paymentMethod === 'upi') ? 'completed' : 'received';
 
       const orderItems: OrderItem[] = cart.map((item) => ({
         product_id: item.product.id,
@@ -132,34 +133,41 @@ export default function POSSystem() {
         order_type: 'counter',
         items: orderItems,
         total_amount: getTotalAmount(),
-        status: 'completed',
+        status: status,
         payment_method: paymentMethod,
         fulfillment_type: 'take_away',
         custom_packing: false,
       });
 
       if (error) throw error;
-
-      toast({
-        title: 'Order Completed!',
-        description: `Order ${orderNumber} has been saved.`,
-        action: (
-          <ToastAction
-            altText="Send WhatsApp"
-            onClick={() => sendInvoiceViaWhatsApp({
-              phone: customerPhone,
-              orderNumber: orderNumber,
-              customerName: customerName,
-              items: orderItems,
-              totalAmount: getTotalAmount(),
-              fulfillmentType: 'take_away',
-              createdAt: new Date().toISOString()
-            })}
-          >
-            Send WhatsApp
-          </ToastAction>
-        ),
-      });
+      
+      if (paymentMethod === 'pending') {
+        toast({
+            title: 'Order Saved!',
+            description: `Order ${orderNumber} saved as pending.`,
+        });
+      } else {
+        toast({
+          title: 'Order Completed!',
+          description: `Order ${orderNumber} has been saved.`,
+          action: (
+            <ToastAction
+              altText="Send WhatsApp"
+              onClick={() => sendInvoiceViaWhatsApp({
+                phone: customerPhone,
+                orderNumber: orderNumber,
+                customerName: customerName,
+                items: orderItems,
+                totalAmount: getTotalAmount(),
+                fulfillmentType: 'take_away',
+                createdAt: new Date().toISOString()
+              })}
+            >
+              Send WhatsApp
+            </ToastAction>
+          ),
+        });
+      }
 
       setCart([]);
       setCustomerName('');
@@ -203,7 +211,7 @@ export default function POSSystem() {
                   key={product.id}
                   onClick={() => addToCart(product)}
                   variant="outline"
-                  className="h-auto flex-col items-start p-4 border-2 hover:border-orange-400"
+                  className="h-auto flex-col items-start p-4 border-2 border-orange-200 bg-white text-foreground hover:bg-orange-50 hover:border-orange-400 hover:text-foreground transition-colors"
                 >
                   <p className="font-bold text-sm">{product.name}</p>
                   <p className="text-xs text-muted-foreground">{product.name_english}</p>
@@ -315,23 +323,34 @@ export default function POSSystem() {
                 <span className="text-orange-600">₹{getTotalAmount().toFixed(2)}</span>
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-2">
                 <Button
-                  onClick={() => handlePayment('cash')}
-                  className="bg-green-600 hover:bg-green-700"
+                  onClick={() => handlePayment('pending')}
+                  variant="outline"
+                  className="w-full"
                   disabled={processing}
                 >
-                  <Wallet className="w-4 h-4 mr-2" />
-                  Cash
+                  <Save className="w-4 h-4 mr-2" />
+                  Save Pending
                 </Button>
-                <Button
-                  onClick={() => handlePayment('upi')}
-                  className="bg-blue-600 hover:bg-blue-700"
-                  disabled={processing}
-                >
-                  <QrCode className="w-4 h-4 mr-2" />
-                  UPI
-                </Button>
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    onClick={() => handlePayment('cash')}
+                    className="bg-green-600 hover:bg-green-700"
+                    disabled={processing}
+                  >
+                    <Wallet className="w-4 h-4 mr-2" />
+                    Cash
+                  </Button>
+                  <Button
+                    onClick={() => handlePayment('upi')}
+                    className="bg-blue-600 hover:bg-blue-700"
+                    disabled={processing}
+                  >
+                    <QrCode className="w-4 h-4 mr-2" />
+                    UPI
+                  </Button>
+                </div>
               </div>
             </div>
           </CardContent>

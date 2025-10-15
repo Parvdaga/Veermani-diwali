@@ -7,7 +7,9 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { sendInvoiceViaWhatsApp } from '@/lib/whatsapp';
 import { useToast } from '@/hooks/use-toast';
-import { Clock, Package, CircleCheck as CheckCircle, Circle as XCircle, Phone, User, MessageSquare } from 'lucide-react';
+import { 
+  Clock, Package, CircleCheck as CheckCircle, Circle as XCircle, Phone, User, MessageSquare, Wallet, QrCode 
+} from 'lucide-react';
 
 export default function OrderManagement() {
   const { toast } = useToast();
@@ -67,13 +69,34 @@ export default function OrderManagement() {
         title: 'Status Updated',
         description: `Order status changed to ${status}`,
       });
-
-      fetchOrders();
     } catch (error) {
       console.error('Error updating order:', error);
       toast({
         title: 'Error',
         description: 'Failed to update order status',
+        variant: 'destructive',
+      });
+    }
+  };
+  
+  const completeOrderWithPayment = async (orderId: string, paymentMethod: 'cash' | 'upi') => {
+    try {
+      const { error } = await supabase
+        .from('orders')
+        .update({ status: 'completed', payment_method: paymentMethod })
+        .eq('id', orderId);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Order Completed',
+        description: `Order marked as complete and paid with ${paymentMethod}.`,
+      });
+    } catch (error) {
+      console.error('Error completing order:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to complete order.',
         variant: 'destructive',
       });
     }
@@ -203,7 +226,7 @@ export default function OrderManagement() {
                   variant="outline"
                   size="sm"
                   className="w-full"
-                  disabled={order.status === 'processing' || order.status === 'completed' || order.status === 'cancelled'}
+                  disabled={order.status !== 'received'}
                 >
                   Processing
                 </Button>
@@ -212,48 +235,66 @@ export default function OrderManagement() {
                   variant="outline"
                   size="sm"
                   className="w-full"
-                  disabled={order.status === 'ready' || order.status === 'completed' || order.status === 'cancelled'}
+                  disabled={order.status !== 'processing'}
                 >
-                  Ready
+                  Ready for Pickup
                 </Button>
-                <Button
-                  onClick={() => updateOrderStatus(order.id, 'completed')}
-                  className="w-full bg-green-600 hover:bg-green-700"
-                  size="sm"
-                  disabled={order.status === 'completed' || order.status === 'cancelled'}
-                >
-                  <CheckCircle className="w-4 h-4 mr-2" />
-                  Complete
-                </Button>
-                <Button
-                  onClick={() => sendInvoiceViaWhatsApp({
-                    phone: order.customer_phone,
-                    orderNumber: order.order_number,
-                    customerName: order.customer_name,
-                    items: order.items,
-                    totalAmount: order.total_amount,
-                    createdAt: order.created_at,
-                    fulfillmentType: order.fulfillment_type,
-                    pickupDatetime: order.pickup_datetime,
-                    customPacking: order.custom_packing,
-                    specialInstructions: order.special_instructions,
-                  })}
-                  className="w-full bg-teal-600 hover:bg-teal-700"
-                  size="sm"
-                >
-                  <MessageSquare className="w-4 h-4 mr-2" />
-                  Send WA
-                </Button>
-                <Button
-                  onClick={() => updateOrderStatus(order.id, 'cancelled')}
-                  variant="destructive"
-                  size="sm"
-                  className="w-full"
-                  disabled={order.status === 'completed' || order.status === 'cancelled'}
-                >
-                  <XCircle className="w-4 h-4 mr-2" />
-                  Cancel
-                </Button>
+
+                <div className="pt-2 border-t">
+                  <p className="text-sm font-semibold my-2">Complete with Payment</p>
+                  <div className="space-y-2">
+                    <Button
+                      onClick={() => completeOrderWithPayment(order.id, 'cash')}
+                      className="w-full bg-green-600 hover:bg-green-700"
+                      size="sm"
+                      disabled={order.status !== 'ready'}
+                    >
+                      <Wallet className="w-4 h-4 mr-2" />
+                      Paid by Cash
+                    </Button>
+                    <Button
+                      onClick={() => completeOrderWithPayment(order.id, 'upi')}
+                      className="w-full bg-blue-600 hover:bg-blue-700"
+                      size="sm"
+                      disabled={order.status !== 'ready'}
+                    >
+                      <QrCode className="w-4 h-4 mr-2" />
+                      Paid by UPI
+                    </Button>
+                  </div>
+                </div>
+                
+                <div className="pt-2 border-t flex flex-col gap-2">
+                    <Button
+                      onClick={() => sendInvoiceViaWhatsApp({
+                        phone: order.customer_phone,
+                        orderNumber: order.order_number,
+                        customerName: order.customer_name,
+                        items: order.items,
+                        totalAmount: order.total_amount,
+                        createdAt: order.created_at,
+                        fulfillmentType: order.fulfillment_type,
+                        pickupDatetime: order.pickup_datetime,
+                        customPacking: order.custom_packing,
+                        specialInstructions: order.special_instructions,
+                      })}
+                      className="w-full bg-teal-600 hover:bg-teal-700"
+                      size="sm"
+                    >
+                      <MessageSquare className="w-4 h-4 mr-2" />
+                      Send WA
+                    </Button>
+                    <Button
+                      onClick={() => updateOrderStatus(order.id, 'cancelled')}
+                      variant="destructive"
+                      size="sm"
+                      className="w-full"
+                      disabled={order.status === 'completed' || order.status === 'cancelled'}
+                    >
+                      <XCircle className="w-4 h-4 mr-2" />
+                      Cancel
+                    </Button>
+                </div>
               </div>
             </div>
           </CardContent>

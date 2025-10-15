@@ -6,7 +6,8 @@ import { useCartStore } from '@/lib/cart-store';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ShoppingCart, Sparkles, User } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { ShoppingCart, Sparkles, User, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
 
 export default function HomePage() {
@@ -14,6 +15,7 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const [hydrated, setHydrated] = useState(false);
   const { items, addItem } = useCartStore();
+  const { toast } = useToast();
 
   useEffect(() => {
     setHydrated(true);
@@ -35,6 +37,21 @@ export default function HomePage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleAddToCart = (product: Product) => {
+    addItem(product);
+    toast({
+      title: "Product Added",
+      description: `${product.name} has been added to your cart.`,
+      action: (
+        <Link href="/cart">
+          <Button variant="secondary" size="sm">
+            View Cart
+          </Button>
+        </Link>
+      ),
+    });
   };
 
   const sweets = products.filter((p) => p.category === 'sweets');
@@ -114,7 +131,7 @@ export default function HomePage() {
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {sweets.filter(s => !s.is_on_order).slice(0, 3).map((product) => (
-                  <ProductCard key={product.id} product={product} onAddToCart={addItem} />
+                  <ProductCard key={product.id} product={product} onAddToCart={handleAddToCart} />
                 ))}
               </div>
             </section>
@@ -126,7 +143,7 @@ export default function HomePage() {
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {sweets.filter(s => !s.is_on_order).map((product) => (
-                    <ProductCard key={product.id} product={product} onAddToCart={addItem} />
+                    <ProductCard key={product.id} product={product} onAddToCart={handleAddToCart} />
                   ))}
                 </div>
               </div>
@@ -139,7 +156,7 @@ export default function HomePage() {
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {namkeen.filter(n => !n.is_on_order).map((product) => (
-                    <ProductCard key={product.id} product={product} onAddToCart={addItem} />
+                    <ProductCard key={product.id} product={product} onAddToCart={handleAddToCart} />
                   ))}
                 </div>
               </div>
@@ -156,7 +173,7 @@ export default function HomePage() {
                   </p>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {onOrder.map((product) => (
-                      <ProductCard key={product.id} product={product} onAddToCart={addItem} isOnOrder />
+                      <ProductCard key={product.id} product={product} onAddToCart={handleAddToCart} isOnOrder />
                     ))}
                   </div>
                 </div>
@@ -185,7 +202,7 @@ function ProductCard({
   isOnOrder = false,
 }: {
   product: Product;
-  onAddToCart: (item: any) => void;
+  onAddToCart: (product: Product) => void;
   isOnOrder?: boolean;
 }) {
   return (

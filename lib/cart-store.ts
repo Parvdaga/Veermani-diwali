@@ -79,7 +79,7 @@ export const useCartStore = create<CartStore>()(
     }),
     {
       name: 'veermani-cart',
-      skipHydration: true,
+      // The 'skipHydration: true' line that was here has been removed to fix the issue.
     }
   )
 );

@@ -6,21 +6,13 @@ import { supabase, type Order } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Badge } from '@/components/ui/badge';
-import { useToast } from '@/hooks/use-toast';
 import { 
-  LogOut, ShoppingCart, Package, DollarSign, ListOrdered, History, Clock, Wallet, QrCode 
+  LogOut, ShoppingCart, Package, DollarSign, ListOrdered, History, Clock, Search 
 } from 'lucide-react';
 import POSSystem from '@/components/admin/POSSystem';
 import OrderManagement from '@/components/admin/OrderManagement';
+import PendingPayments from '@/components/admin/PendingPayments';
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -129,110 +121,11 @@ export default function AdminDashboard() {
   );
 }
 
-function PendingPayments() {
-  const { toast } = useToast();
-  const [pendingOrders, setPendingOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchPendingOrders();
-    
-    const subscription = supabase
-      .channel('pending-orders-channel')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'orders' },
-        () => fetchPendingOrders()
-      )
-      .subscribe();
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
-
-  const fetchPendingOrders = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('orders')
-        .select('*')
-        .eq('payment_method', 'pending')
-        .order('created_at', { ascending: true });
-
-      if (error) throw error;
-      setPendingOrders(data || []);
-    } catch (error) {
-      console.error('Error fetching pending orders:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const markAsPaid = async (orderId: string, paymentMethod: 'cash' | 'upi') => {
-    try {
-      const { error } = await supabase
-        .from('orders')
-        .update({ payment_method: paymentMethod, status: 'completed' })
-        .eq('id', orderId);
-
-      if (error) throw error;
-
-      toast({
-        title: 'Payment Completed',
-        description: `Order has been marked as paid with ${paymentMethod}.`,
-      });
-      fetchPendingOrders();
-    } catch (error) {
-      console.error('Error updating payment status:', error);
-      toast({
-        title: 'Update Failed',
-        description: 'Could not update the payment status.',
-        variant: 'destructive',
-      });
-    }
-  };
-
-  if (loading) {
-    return <div className="text-center py-12">Loading pending payments...</div>;
-  }
-
-  return (
-    <Card className="border-2 border-orange-300">
-      <CardHeader>
-        <CardTitle>Orders with Pending Payments</CardTitle>
-      </CardHeader>
-      <CardContent>
-        {pendingOrders.length === 0 ? (
-          <p className="text-center text-muted-foreground py-12">No pending payments found.</p>
-        ) : (
-          <div className="space-y-4">
-            {pendingOrders.map((order) => (
-              <div key={order.id} className="border-2 rounded-lg p-4 flex flex-col md:flex-row justify-between items-center gap-4">
-                <div className="flex-1">
-                  <p className="font-bold">{order.customer_name} ({order.customer_phone})</p>
-                  <p className="text-sm text-muted-foreground">Order: {order.order_number}</p>
-                  <p className="text-lg font-bold text-orange-600 mt-1">₹{order.total_amount.toFixed(2)}</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button onClick={() => markAsPaid(order.id, 'cash')} className="bg-green-600 hover:bg-green-700">
-                    <Wallet className="w-4 h-4 mr-2" /> Paid by Cash
-                  </Button>
-                  <Button onClick={() => markAsPaid(order.id, 'upi')} className="bg-blue-600 hover:bg-blue-700">
-                    <QrCode className="w-4 h-4 mr-2" /> Paid by UPI
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
-
+/* ----------------- ORDER HISTORY WITH SEARCH ----------------- */
 function OrderHistory() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     fetchAllOrders();
@@ -254,73 +147,99 @@ function OrderHistory() {
     }
   };
 
+  const filteredOrders = orders.filter(
+    (order) =>
+      order.customer_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.order_number?.toString().includes(searchTerm)
+  );
+
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'received':
-        return 'bg-blue-500 hover:bg-blue-600 text-white';
-      case 'processing':
-        return 'bg-yellow-500 hover:bg-yellow-600 text-white';
-      case 'ready':
-        return 'bg-green-500 hover:bg-green-600 text-white';
-      case 'completed':
-        return 'bg-gray-500 hover:bg-gray-600 text-white';
-      case 'cancelled':
-        return 'bg-red-500 hover:bg-red-600 text-white';
-      default:
-        return 'bg-gray-400 text-white';
+      case 'received': return 'bg-blue-500 hover:bg-blue-600 text-white';
+      case 'processing': return 'bg-yellow-500 hover:bg-yellow-600 text-white';
+      case 'ready': return 'bg-green-500 hover:bg-green-600 text-white';
+      case 'completed': return 'bg-gray-500 hover:bg-gray-600 text-white';
+      case 'cancelled': return 'bg-red-500 hover:bg-red-600 text-white';
+      default: return 'bg-gray-400 text-white';
     }
   };
 
-  if (loading) {
-    return <div className="text-center py-12">Loading order history...</div>;
-  }
+  if (loading) return <div className="text-center py-12">Loading order history...</div>;
 
   return (
     <Card className="border-2 border-orange-300">
       <CardHeader>
-        <CardTitle>Complete Order History</CardTitle>
+        <CardTitle className="flex justify-between items-center">
+          <span>Complete Order History</span>
+          <div className="relative w-64">
+            <Search className="absolute left-2 top-2.5 w-4 h-4 text-gray-500" />
+            <input
+              type="text"
+              placeholder="Search by name or order number"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-8 pr-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-orange-400"
+            />
+          </div>
+        </CardTitle>
       </CardHeader>
       <CardContent>
-        {orders.length === 0 ? (
-          <p className="text-center text-muted-foreground py-12">No orders found.</p>
+        {filteredOrders.length === 0 ? (
+          <p className="text-center text-muted-foreground py-12">
+            No orders found for "{searchTerm}".
+          </p>
         ) : (
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Order #</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Customer</TableHead>
-                  <TableHead>Phone</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead className="text-right">Total</TableHead>
-                  <TableHead className="text-center">Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {orders.map((order) => (
-                  <TableRow key={order.id}>
-                    <TableCell className="font-medium">{order.order_number}</TableCell>
-                    <TableCell>{new Date(order.created_at).toLocaleDateString()}</TableCell>
-                    <TableCell>{order.customer_name}</TableCell>
-                    <TableCell>{order.customer_phone}</TableCell>
-                    <TableCell>
-                      <Badge
-                        className={order.order_type === 'online' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'}
-                      >
-                        {order.order_type}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">₹{order.total_amount.toFixed(2)}</TableCell>
-                    <TableCell className="text-center">
-                      <Badge className={getStatusColor(order.status)}>
-                        {order.status}
-                      </Badge>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+          <div className="space-y-4">
+            {filteredOrders.map((order) => (
+              <div key={order.id} className="border border-orange-200 rounded-lg p-4 bg-white shadow-sm">
+                <div className="flex flex-col md:flex-row justify-between gap-4">
+                  <div>
+                    <p className="font-bold text-lg">
+                      #{order.order_number} — {order.customer_name}
+                    </p>
+                    <p className="text-sm text-muted-foreground">{order.customer_phone}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {new Date(order.created_at).toLocaleString('en-IN')}
+                    </p>
+                  </div>
+
+                  <div className="text-right">
+                    <Badge className={`capitalize ${getStatusColor(order.status)}`}>
+                      {order.status}
+                    </Badge>
+                    <p className="text-orange-700 font-semibold text-lg mt-2">
+                      ₹{order.total_amount.toFixed(2)}
+                    </p>
+                    <Badge
+                      className={`mt-1 ${
+                        order.order_type === 'online'
+                          ? 'bg-blue-100 text-blue-800'
+                          : 'bg-green-100 text-green-800'
+                      }`}
+                    >
+                      {order.order_type}
+                    </Badge>
+                  </div>
+                </div>
+
+                {order.items && Array.isArray(order.items) && order.items.length > 0 && (
+                  <div className="mt-4 border-t pt-3">
+                    <p className="font-semibold text-orange-800 mb-2">Items:</p>
+                    <ul className="list-disc list-inside space-y-1 text-sm">
+                      {order.items.map((item: any, index: number) => (
+                        <li key={index}>
+                          <span className="font-medium">{item.product_name}</span>{' '}
+                          - {item.quantity_kg}kg × ₹{item.price_per_kg}/kg ={' '}
+                          <span className="font-semibold">
+                            ₹{item.subtotal?.toFixed(2) ?? 0}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
         )}
       </CardContent>
@@ -328,6 +247,7 @@ function OrderHistory() {
   );
 }
 
+/* ----------------- BULK ORDER MANAGEMENT ----------------- */
 function BulkOrderManagement() {
   const [bulkOrders, setBulkOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -366,9 +286,7 @@ function BulkOrderManagement() {
     }
   };
 
-  if (loading) {
-    return <div className="text-center py-12">Loading...</div>;
-  }
+  if (loading) return <div className="text-center py-12">Loading...</div>;
 
   return (
     <div className="space-y-4">
